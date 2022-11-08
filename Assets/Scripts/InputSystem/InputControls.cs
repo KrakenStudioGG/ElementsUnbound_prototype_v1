@@ -52,7 +52,7 @@ public partial class @InputControls : IInputActionCollection2, IDisposable
                     ""expectedControlType"": ""Button"",
                     ""processors"": """",
                     ""interactions"": """",
-                    ""initialStateCheck"": false
+                    ""initialStateCheck"": true
                 },
                 {
                     ""name"": ""SelectSpell"",
@@ -1038,11 +1038,6 @@ public partial class @InputControls : IInputActionCollection2, IDisposable
                 @SelectSpell.performed += instance.OnSelectSpell;
                 @SelectSpell.canceled += instance.OnSelectSpell;
             }
-        }
-
-        public void SetCallbacks()
-        {
-            throw new NotImplementedException();
         }
     }
     public PlayerActions @Player => new PlayerActions(this);

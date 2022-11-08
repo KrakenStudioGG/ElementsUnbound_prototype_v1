@@ -16,6 +16,7 @@ public class Singleton<T> : MonoBehaviour where T : Component
                 GameObject obj = new GameObject();
                 obj.name = typeof(T).Name;
                 obj.hideFlags = HideFlags.HideAndDontSave;
+                //obj.hideFlags = HideFlags.DontSave;
                 _instance = obj.AddComponent<T>();
             }
             return _instance;

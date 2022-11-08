@@ -1,66 +1,60 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using UnityEngine.Events;
-
-
-[Serializable]
-public class PlayerMoveEvent : UnityEvent<Vector2>{}
-[Serializable]
-public class PlayerLookEvent : UnityEvent<Vector2>{}
-[Serializable]
-public class OnFireEvent : UnityEvent<bool>{}
-[Serializable]
-public class CastSpellEvent : UnityEvent<Vector2, Vector2>{}
 
 public class InputManager : Singleton<InputManager>
 {
-    public InputControls inputControls;
-    public PlayerMoveEvent moveEvent;
-    public PlayerLookEvent lookEvent;
-    public OnFireEvent fireEvent;
-    private bool _wasPressedThisFrame;
+    private InputControls inputControls;
+
+#region Events
+    public delegate void MoveInputEvent(Vector2 moveInput);
+    public event MoveInputEvent moveEvent;
+    
+    public delegate void LookInputEvent(Vector2 lookInput);
+    public static event LookInputEvent lookEvent;
+    
+    public delegate void FireInputEvent(float fireInput);
+    public static event FireInputEvent fireEvent;
+
+#endregion
+
+#region Getters
+    /*public Vector2 MoveInput { get; private set; }
+    public Vector2 LookInput { get; private set; }*/
+#endregion
+
+    private void Awake()
+    {
+        inputControls = new InputControls();
+    }
 
     private void OnEnable()
     {
-        inputControls = new InputControls();
         inputControls.Player.Enable();
-        inputControls.Player.Move.performed += OnMove;
-        inputControls.Player.Move.canceled += OnMove;
-        inputControls.Player.Look.performed += OnLook;
-        inputControls.Player.Look.canceled += OnLook;
-        _wasPressedThisFrame = inputControls.Player.Fire.WasPressedThisFrame();
-        inputControls.Player.Fire.canceled += OnFire;
     }
     
     private void OnDisable()
     {
         inputControls.Player.Disable();
     }
-
-    private void OnMove(InputAction.CallbackContext ctx)
-    {
-        Vector2 moveInput = ctx.ReadValue<Vector2>();
-        moveEvent?.Invoke(moveInput);
-    }
-
-    private void OnLook(InputAction.CallbackContext ctx)
-    {
-        Vector2 lookInput = ctx.ReadValue<Vector2>();
-        lookEvent?.Invoke(lookInput);
-    }
-
-    private void OnFire(InputAction.CallbackContext ctx)
-    {
-        fireEvent?.Invoke(ctx.ReadValue<bool>());
-    }
     
-    public void OnSpellSelect(InputValue value)
+    private void OnMove(InputValue value)
     {
-        //onSelectEvent?.Invoke(value.Get<KeyCode>());
+        if(moveEvent != null)
+            Debug.Log("OnMoveInput subbed");
+        moveEvent?.Invoke(value.Get<Vector2>());
     }
-    
+
+    private void OnLook(InputValue value)
+    {
+        lookEvent?.Invoke(value.Get<Vector2>());
+    }
+
+    private void OnFire(InputValue value)
+    {
+        fireEvent?.Invoke(value.Get<float>());
+    }
+
 }

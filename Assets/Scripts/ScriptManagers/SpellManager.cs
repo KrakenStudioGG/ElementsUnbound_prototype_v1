@@ -1,8 +1,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Numerics;
-using Unity.Mathematics;
 using UnityEngine;
 using Quaternion = UnityEngine.Quaternion;
 using Vector2 = UnityEngine.Vector2;
@@ -10,19 +8,38 @@ using Vector3 = UnityEngine.Vector3;
 
 public class SpellManager : MonoBehaviour
 {
+    public PlayerController playerController;
     public List<SpellSO> spellList = new List<SpellSO>();
-    private List<GameObject> spawnSpells;
-    private Vector2 playerPos;
-    private Vector2 rayPos;
+    public List<GameObject> spawnSpells;
+    private Vector3 playerPos;
+    private Vector3 rayPos;
+    private bool isCastEventTriggered;
+    private bool isCoroutineStarted;
+    private Transform activeTransform;
+    private int listIndex;
 
     private void Awake()
     {
         CreateSpells();
     }
 
-    private void Update()
+    private void OnEnable()
     {
-        spawnSpells[0].transform.position = Vector2.Lerp(playerPos, rayPos, spellList[0].speed);
+        PlayerController.castEvent += MoveData;
+    }
+
+    private void OnDisable()
+    {
+        PlayerController.castEvent -= MoveData;
+    }
+
+    private void MoveData(Vector2 player, Vector2 rayPointPos, int index)
+    {
+        listIndex = index;
+        activeTransform= spawnSpells[index].GetComponent<Transform>();
+        activeTransform.position = player;
+        rayPos = rayPointPos;
+        spawnSpells[index].SetActive(true);
     }
 
     private void CreateSpells()
@@ -35,20 +52,36 @@ public class SpellManager : MonoBehaviour
         }
     }
 
-    public void MoveData(Vector2 playerPos, Vector2 rayPos)
+    public virtual void Update()
     {
-        this.playerPos = playerPos;
-        this.rayPos = rayPos;
+        if (spawnSpells[listIndex].activeInHierarchy)
+        {
+            MoveSpell();
+            RotateSpell();
+        }
     }
 
-    IEnumerator MoveSpell(Vector2 player, Vector2 ray)
+    private void MoveSpell()
     {
-        spawnSpells[0].SetActive(true);
-        while (Vector2.Distance(player, ray) > 0.1f)
+        Vector3 moveDir = rayPos - (Vector3)activeTransform.position;
+        moveDir = moveDir.normalized;
+        if (Vector2.Distance(activeTransform.position, rayPos) > 0.1f)
         {
-            spawnSpells[0].transform.position = Vector2.Lerp(player, ray, spellList[0].speed);
-            yield return null;
+            activeTransform.position += moveDir * Time.deltaTime * 0.5f;
+            RotateSpell();
         }
-        spawnSpells[0].SetActive(false);
+        else
+        {
+            spawnSpells[listIndex].SetActive(false);
+        }
+    }
+
+    private void RotateSpell()
+    {
+        Vector3 moveDir = rayPos - (Vector3)activeTransform.position;
+        moveDir = moveDir.normalized;
+        float angle = Mathf.Atan2(moveDir.y, moveDir.x) * Mathf.Rad2Deg;
+        Quaternion rotateValue = Quaternion.AngleAxis(angle, Vector3.forward);
+        activeTransform.rotation = Quaternion.Slerp(activeTransform.rotation, rotateValue, Time.deltaTime * 100f);
     }
 }

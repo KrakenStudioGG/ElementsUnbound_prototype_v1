@@ -1,15 +1,18 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 [CreateAssetMenu(order = 1, fileName = "SpellSO", menuName = "Create Spell")]
 public class SpellSO : ScriptableObject
 {
+    public class Spell
+    {
+        
+    }
     public GameObject prefab;
     public float speed;
     public float damage;
-    private Vector2 startingPos;
-    private Vector2 endingPos;
 
     /*public static SpellSO CreateInstance(GameObject prefab, float speed, float damage)
     {
